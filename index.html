@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta charset=utf-8 />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Cloud Messaging Example</title>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.2.1/material.indigo-pink.min.css">
+  <script defer src="https://code.getmdl.io/1.2.1/material.min.js"></script>
+  <link rel="stylesheet" href="styles/index.css">
+
+</head>
+
+<body>
+  <header>
+    <h1>Push Notification Firebase</h1>
+  </header>
+
+  <main>
+    <section class="subscription-details js-subscription-details is-invisible">
+      <pre><code class="js-subscription-json"></code></pre>
+    </section>
+  </main>
+
+  <!-- Import and configure the Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.6/firebase-messaging.js"></script>
+
+  <script>
+
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      console.log('Service Worker and Push is supported');
+
+      navigator.serviceWorker.register('firebase-messaging-sw.js') //Register a service worker
+        .then(function (swReg) {
+          console.log('Service Worker is registered', swReg);
+        })
+        .catch(function (error) {
+          console.error('Service Worker Error', error);
+        });
+    } else {
+      console.warn('Push messaging is not supported');
+    }
+
+    var firebaseConfig = {
+      apiKey: "AIzaSyD1-uFidwbNN4o1zbxM_P03YCz0KV9G6yA",
+      authDomain: "notificaciones-55790.firebaseapp.com",
+      databaseURL: "https://notificaciones-55790.firebaseio.com",
+      projectId: "notificaciones-55790",
+      storageBucket: "notificaciones-55790.appspot.com",
+      messagingSenderId: "1082817577336",
+      appId: "1:1082817577336:web:5c01fd74f0e917f70fc88d"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+
+    const messaging = firebase.messaging();
+
+
+    messaging.usePublicVapidKey("BBmgzM707m6OyoWmCK5HLgNBLWUOe6wuGathsot16QEPIyjWs4f6NGBBoj2-U91UtCH-hGcaZMKYlyLDNcpOfRM");
+    messaging.requestPermission()
+      .then(() => {
+        console.log('Notification permission granted.');
+        return messaging.getToken();
+      }).then((token) => {
+        console.log(token);
+
+        const subscriptionJson = document.querySelector('.js-subscription-json');
+        const subscriptionDetails = document.querySelector('.js-subscription-details');
+        subscriptionJson.textContent = `Token: ${token}`;
+        subscriptionDetails.classList.remove('is-invisible');
+      })
+      .catch((e) => {
+        console.log("Error")
+      });
+
+    messaging.onMessage((payload) => {
+      console.log("Message", payload);
+      Notification.requestPermission((result) => {
+        if (result == 'granted') {
+          navigator.serviceWorker.ready.then((registration) => {
+            let title = payload.notification.title;
+            let body = payload.notification.body;
+
+            registration.showNotification(title, { body, icon: 'images/icon.png', badge: 'images/badge.png' });
+          })
+        }
+      })
+    });
+
+  </script>
+</body>
+
+</html>
